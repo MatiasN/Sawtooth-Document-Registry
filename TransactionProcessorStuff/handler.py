@@ -133,13 +133,12 @@ class RegistryTransactionHandler(TransactionHandler):
     	if not addresses:
         	raise InternalError('State error')
 
-    def _do_register(name, author, docHash, state):
-        msg = 'Setting "{n}" to {v}, and {t}'.format(n=name, v=author, t=docHash)
+    def _do_register(name, author, docHash, url, state):
+        msg = 'Setting "{n}" to author:{v}, hash:{t} and url:{u}'.format(
+                                    n=name, v=author, t=docHash, u=url)
         LOGGER.debug(msg)
 
-        
-
         updated = {k: v for k, v in state.items()}
-        updated[name] = docHash,author, url
+        updated[name] = name, docHash, author, url
 
         return updated
