@@ -41,28 +41,26 @@ class RegistryTransactionHandler(TransactionHandler):
         return [REGISTRY_ADDRESS_PREFIX]
 
     def apply(self, transaction, context):
-        action, name, author, docHash = _unpack_transaction(transaction)
+        
+        header = transaction.header
+        signer = header.signer_public_key
+
+        name, author, docHash, url = _unpack_transaction(transaction)
 
         state = _get_state_data(name, context)
 
-        updated_state = _do_registry(action, name, author, docHash, state)
+        updated_state = _do_register(name, author, docHash, url, state)
 
         _set_state_data(name, updated_state, context)
 
 	def _unpack_transaction(transaction):
-    	action, name, author, docHash = _decode_transaction(transaction)
+    	name, author, docHash = _decode_transaction(transaction)
 	
-    	_validate_action(action)
     	_validate_name(name)
     	_validate_author(author)
     	_validate_docHash(docHash)
 	
-    	return verb, name, value
-
-
-    def _validate_action(action):
-    	if action not in VALID_ACTION:
-        	raise InvalidTransaction('Action must be "register" or "update"')
+    	return name, value
 
 
     def _validate_name(name):
@@ -91,11 +89,6 @@ class RegistryTransactionHandler(TransactionHandler):
         	raise InvalidTransaction('Invalid payload serialization')
 
     	try:
-        	actior = content['Action']
-   	 	except AttributeError:
-        	raise InvalidTransaction('Action is required')
-
-    	try:
         	name = content['Name']
     	except AttributeError:
         	raise InvalidTransaction('Name is required')
@@ -110,7 +103,12 @@ class RegistryTransactionHandler(TransactionHandler):
     	except AttributeError:
         	raise InvalidTransaction('DocHash is required')
 
-    	return action, name, author, docHash
+        try:
+            url = content['Url']
+        except AttributeError:
+            raise InvalidTransaction('url is required')
+
+    	return name, author, docHash, url
 
 
     def _get_state_data(name, context):
@@ -135,46 +133,13 @@ class RegistryTransactionHandler(TransactionHandler):
     	if not addresses:
         	raise InternalError('State error')
 
-    def _do_registry(action, name, author, docHash, state).
-    	actions = {
-    		'register': _do_register,
-    		'update': _do_update,
-    	}
-
-    	try:
-    		return actions[action](name, authorw, docHash, state)
-    	except KeyError:
-    		# This would be a programming error.
-        	raise InternalError('Unhandled verb: {}'.format(verb))
-
     def _do_register(name, author, docHash, state):
         msg = 'Setting "{n}" to {v}, and {t}'.format(n=name, v=author, t=docHash)
         LOGGER.debug(msg)
 
-        if name in state:
-                raise InvalidTransaction(
-                    'Action is "register", but that name already exists')
+        
 
         updated = {k: v for k, v in state.items()}
-        updated[name] = docHash,author
-
-        return updated
-
-    def _do_update(name, author, docHash, state)
-        msg = 'Updating "{n}", with the hash "{v}"'.format(n=name,v=docHash)
-        LOGGER.debug(msg)
-
-        if name not it state:
-            raise InvalidTransaction(
-                'Action is "update" but name "{}" not in state'.format(name))
-
-        curr = state[name]
-
-        if not len(docHash) == 512
-            raise InvalidTransaction(
-                'The given hash is not a valid sha512 hash')
-
-        updated = {k: v for k, v in state.items()}
-        updated[name] = docHash,author
+        updated[name] = docHash,author, url
 
         return updated
