@@ -22,7 +22,7 @@ REGISTRY_ADDRESS_PREFIX = hashlib.sha512(
     FAMILY_NAME.encode('utf-8')).hexdigest()[0:6]
 
 def make_registry_address(name):
-    return INTKEY_ADDRESS_PREFIX + hashlib.sha512(
+    return REGISTRY_ADDRESS_PREFIX + hashlib.sha512(
         name.encode('utf-8')).hexdigest()[:64]
 
 class RegistryTransactionHandler(TransactionHandler):
