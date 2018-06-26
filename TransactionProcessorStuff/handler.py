@@ -41,24 +41,32 @@ class RegistryTransactionHandler(TransactionHandler):
     def apply(self, transaction, context):
         
         header = transaction.header
+
         signer = header.signer_public_key
 
         name, author, docHash, url = _unpack_transaction(transaction)
 
         state = _get_state_data(name, context)
 
-        updated_state = _do_register(name, author, docHash, url, state)
+        stateName, stateAuthor, stateDocHash, stateUrl, statePKey = state[name]
+
+        if name in state:
+            if not signer == statePKey:
+                raise InvalidTransaction(
+                    'To update a register you must be its creator')
+
+        updated_state = _do_register(name, author, docHash, url, signer, state)
 
         _set_state_data(name, updated_state, context)
 
 	def _unpack_transaction(transaction):
-    	name, author, docHash = _decode_transaction(transaction)
+    	name, author, docHash, url = _decode_transaction(transaction)
 	
     	_validate_name(name)
     	_validate_author(author)
     	_validate_docHash(docHash)
 	
-    	return name, value
+    	return name, author, docHash, url
 
 
     def _validate_name(name):
@@ -131,12 +139,12 @@ class RegistryTransactionHandler(TransactionHandler):
     	if not addresses:
         	raise InternalError('State error')
 
-    def _do_register(name, author, docHash, url, state):
+    def _do_register(name, author, docHash, url, pkey, state):
         msg = 'Setting "{n}" to author:{v}, hash:{t} and url:{u}'.format(
                                     n=name, v=author, t=docHash, u=url)
         LOGGER.debug(msg)
 
         updated = {k: v for k, v in state.items()}
-        updated[name] = name, author, docHash, url
+        updated[name] = name, author, docHash, url, pkey
 
         return updated
