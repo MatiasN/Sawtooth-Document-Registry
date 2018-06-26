@@ -7,7 +7,7 @@ from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
 from sawtooth_sdk.processor.config import get_log_dir
-from sawtooth_intkey.processor.handler import IntkeyTransactionHandler
+from sawtooth_registry.processor.handler import RegistryTransactionHandler
 
 
 DISTRIBUTION_NAME = 'sawtooth-registry'
