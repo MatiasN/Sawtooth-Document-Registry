@@ -10,8 +10,6 @@ from sawtooth_sdk.processor.exceptions import InternalError
 
 LOGGER = logging.getLoggeer(__name__)
 
-VALID_ACTIONS = 'register','update'
-
 MAX_NAME_LENGTH = 64
 
 MAX_AUTHOR_LENGTH = 32
@@ -139,6 +137,6 @@ class RegistryTransactionHandler(TransactionHandler):
         LOGGER.debug(msg)
 
         updated = {k: v for k, v in state.items()}
-        updated[name] = name, docHash, author, url
+        updated[name] = name, author, docHash, url
 
         return updated
