@@ -32,9 +32,9 @@ class IntkeyMessageFactory:
 
         return txn_function(payload, addresses, addresses, [])
 
-    def create_tp_process_request(self, verb, name, value,):
+    def create_tp_process_request(self, name, author, docHash, url,):
         txn_function = self._factory.create_tp_process_request
-        return self._create_txn(txn_function, verb, name, value)
+        return self._create_txn(txn_function, name, author, docHash, url)
 
     def create_transaction(self, name, author, docHash, url,):
         txn_function = self._factory.create_transaction
@@ -56,17 +56,17 @@ class IntkeyMessageFactory:
         address = make_registry_address(name)
 
         if value is not None:
-            data = self._dumps({name: value})
+            data = self._dumps({name: name, author, docHash, url})
         else:
             data = None
 
         return self._factory.create_get_response({address: data})
 
-    def create_set_request(self, name, value):
+    def create_set_request(self, name, author, docHash, url):
         address = make_intkey_address(name)
 
         if value is not None:
-            data = self._dumps({name: value})
+            data = self._dumps({name: name, author, docHash, url})
         else:
             data = None
 
