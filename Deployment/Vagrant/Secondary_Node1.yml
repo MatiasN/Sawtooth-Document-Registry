@@ -23,7 +23,7 @@ services:
         sawtooth-validator -v \
           --bind network:tcp://eth0:8800 \
           --bind component:tcp://eth0:4004 \
-          --endpoint tcp://eth0:8800 \
+          --endpoint tcp://10.0.1.11:8800 \
           --peers tcp://10.0.1.10:8800
     \""
     depends_on:

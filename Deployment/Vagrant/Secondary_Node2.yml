@@ -20,37 +20,14 @@ services:
       - "8800:8800"
     command: "bash -c \"\
         sawadm keygen --force && \
-        sawset genesis \
-          -k /etc/sawtooth/keys/validator.priv \
-          -o config-genesis.batch && \
-        sawset proposal create \
-          -k /etc/sawtooth/keys/validator.priv \
-          sawtooth.consensus.algorithm=poet \
-          sawtooth.poet.report_public_key_pem=\
-          \\\"$$(cat /etc/sawtooth/simulator_rk_pub.pem)\\\" \
-          sawtooth.poet.valid_enclave_measurements=$$(poet enclave measurement) \
-          sawtooth.poet.valid_enclave_basenames=$$(poet enclave basename) \
-          -o config.batch && \
-        poet registration create -k /etc/sawtooth/keys/validator.priv -o poet.batch && \
-        sawset proposal create \
-          -k /etc/sawtooth/keys/validator.priv \
-             sawtooth.poet.target_wait_time=5 \
-             sawtooth.poet.initial_wait_time=25 \
-             sawtooth.publisher.max_batches_per_block=100 \
-          -o poet-settings.batch && \
-        sawadm genesis \
-          config-genesis.batch config.batch poet.batch poet-settings.batch && \
         sawtooth-validator -v \
           --bind network:tcp://eth0:8800 \
           --bind component:tcp://eth0:4004 \
-          --endpoint tcp://10.0.1.10:8800 
+          --endpoint tcp://10.0.1.12:8800 \
+          --peers tcp://10.0.1.10:8800,tcp://10.0.1.11:8800
     \""
     depends_on:
       - shell
-    environment:
-      PYTHONPATH: "/project/sawtooth-core/consensus/poet/common:\
-        /project/sawtooth-core/consensus/poet/simulator:\
-        /project/sawtooth-core/consensus/poet/core"
     stop_signal: SIGKILL
 
   rest-api:
