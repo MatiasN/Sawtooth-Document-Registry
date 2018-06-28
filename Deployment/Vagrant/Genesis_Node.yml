@@ -1,0 +1,87 @@
+version: "2.1"
+
+services:
+  shell:
+    image: hyperledger/sawtooth-all:1.0
+    container_name: sawtooth-shell-default
+    entrypoint: "bash -c \"\
+        sawtooth keygen && \
+        tail -f /dev/null \
+        \""
+
+  validator:
+    image: hyperledger/sawtooth-validator:1.0
+    container_name: sawtooth-validator-default-0
+    expose:
+      - 4004
+    ports:
+      - "4004:4004"
+    command: "bash -c \"\
+        sawadm keygen --force && \
+        sawset genesis \
+          -k /etc/sawtooth/keys/validator.priv \
+          -o config-genesis.batch && \
+        sawset proposal create \
+          -k /etc/sawtooth/keys/validator.priv \
+          sawtooth.consensus.algorithm=poet \
+          sawtooth.poet.report_public_key_pem=\
+          \\\"$$(cat /etc/sawtooth/simulator_rk_pub.pem)\\\" \
+          sawtooth.poet.valid_enclave_measurements=$$(poet enclave measurement) \
+          sawtooth.poet.valid_enclave_basenames=$$(poet enclave basename) \
+          -o config.batch && \
+        poet registration create -k /etc/sawtooth/keys/validator.priv -o poet.batch && \
+        sawset proposal create \
+          -k /etc/sawtooth/keys/validator.priv \
+             sawtooth.poet.target_wait_time=5 \
+             sawtooth.poet.initial_wait_time=25 \
+             sawtooth.publisher.max_batches_per_block=100 \
+          -o poet-settings.batch && \
+        sawadm genesis \
+          config-genesis.batch config.batch poet.batch poet-settings.batch && \
+        sawtooth-validator -v \
+          --bind network:tcp://10.0.1.10:8800 \
+          --bind component:tcp://127.0.0.1:4004 \
+          --peering dynamic \
+          --endpoint tcp://10.0.1.10:8800 \
+    \""
+    environment:
+      PYTHONPATH: "/project/sawtooth-core/consensus/poet/common:\
+        /project/sawtooth-core/consensus/poet/simulator:\
+        /project/sawtooth-core/consensus/poet/core"
+    stop_signal: SIGKILL
+
+  rest-api:
+    image: hyperledger/sawtooth-rest-api:1.0
+    container_name: sawtooth-rest-api-default-0
+    ports:
+      - "8800:8800"
+    depends_on:
+      - validator
+    command: sawtooth-rest-api --connect tcp://validator:4004
+    stop_signal: SIGKILL
+
+  settings-tp:
+    image: hyperledger/sawtooth-settings-tp:1.0
+    container_name: sawtooth-settings-tp-default-0
+    depends_on:
+      - validator
+    command: settings-tp -C tcp://validator:4004
+    stop_signal: SIGKILL
+
+  poet-validator-registry-tp:
+    image: hyperledger/sawtooth-poet-validator-registry-tp:1.0
+    container_name: sawtooth-poet-validator-registry-tp-0
+    depends_on:
+      - validator
+    command: poet-validator-registry-tp -C tcp://validator:4004
+    environment:
+      PYTHONPATH: /project/sawtooth-core/consensus/poet/common
+    stop_signal: SIGKILL
+
+  intkey-tp:
+    image: hyperledger/sawtooth-intkey-tp-python:1.0
+    container_name: sawtooth-intkey-tp-python-default-0
+    depends_on:
+      - validator
+    command: intkey-tp-python -C tcp://validator:4004
+    stop_signal: SIGKILL
