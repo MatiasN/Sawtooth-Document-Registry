@@ -56,6 +56,9 @@ services:
   rest-api:
     image: hyperledger/sawtooth-rest-api:1.0
     container_name: sawtooth-rest-api-default
+    expose:
+      - 4004
+      - 8008
     ports:
       - "8008:8008"
     depends_on:
@@ -66,6 +69,8 @@ services:
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
     container_name: sawtooth-settings-tp-default
+    expose:
+      - 4004
     depends_on:
       - validator
     command: settings-tp -C tcp://validator:4004
@@ -74,6 +79,8 @@ services:
   poet-validator-registry-tp:
     image: hyperledger/sawtooth-poet-validator-registry-tp:1.0
     container_name: sawtooth-poet-validator-registry-tp
+    expose:
+      - 4004
     depends_on:
       - validator
     command: poet-validator-registry-tp -C tcp://validator:4004
@@ -84,6 +91,8 @@ services:
   intkey-tp:
     image: hyperledger/sawtooth-intkey-tp-python:1.0
     container_name: sawtooth-intkey-tp-python-default
+    expose:
+      - 4004
     depends_on:
       - validator
     command: intkey-tp-python -C tcp://validator:4004
