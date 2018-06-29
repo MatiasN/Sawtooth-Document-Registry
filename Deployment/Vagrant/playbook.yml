@@ -1,0 +1,14 @@
+- name: Deploy Genesis Node
+  hosts: genesis
+  become: true
+  tasks:
+    - name: Docker-compose
+      command: docker-compose -f Genesis_Node.yml up
+
+
+- name: Deploy Secondary Nodes
+  hosts: secondary
+  become: true
+  tasks:
+    - name: Docker-compose
+      command: docker-compose -f Secondary_Node.yml up
